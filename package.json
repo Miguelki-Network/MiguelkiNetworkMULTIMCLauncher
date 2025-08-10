@@ -2,8 +2,8 @@
     "name": "MiguelkiNetwork-MULTIMCLauncher",
     "productname": "Miguelki Network Multi MC Launcher",
     "version": "3.4.3",
-    "sub_version": "",
-    "changelog": "",
+    "sub_version": "BETA",
+    "changelog": "Esta es la primera versión de Multi MC Launcher",
     "description": "Launcher de minecraft para los servidores de Miguelki Network",
     "main": "src/app.js",
     "author": {

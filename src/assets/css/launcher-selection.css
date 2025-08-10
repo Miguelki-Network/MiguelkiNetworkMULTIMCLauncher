@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%);
     color: white;
     overflow: hidden;
     user-select: none;
@@ -86,7 +86,7 @@ body {
 .header {
     text-align: center;
     padding: 40px 20px 30px 20px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
 }
 
@@ -94,8 +94,8 @@ body {
     margin: 0;
     font-size: 2.2em;
     font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(45deg, #ffffff, #e3f2fd);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    background: linear-gradient(45deg, #ffffff, #b3b3b3);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -167,15 +167,15 @@ body {
     flex: 1;
     padding: 20px 40px 40px 40px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     overflow-y: auto;
     max-height: calc(100vh - 200px);
 }
 
 .launcher-card {
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgba(20, 20, 20, 0.8);
+    border: 2px solid rgba(80, 80, 80, 0.4);
     border-radius: 16px;
     padding: 24px;
     text-align: center;
@@ -198,7 +198,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(45deg, rgba(150, 150, 150, 0.15), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -209,9 +209,9 @@ body {
 
 .launcher-card:hover {
     transform: translateY(-8px) scale(1.02);
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(150, 150, 150, 0.6);
+    background: rgba(40, 40, 40, 0.9);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
 }
 
 .launcher-card.selected {
@@ -227,7 +227,7 @@ body {
     height: 72px;
     border-radius: 16px;
     margin-bottom: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(80, 80, 80, 0.5);
     object-fit: cover;
     transition: all 0.3s ease;
 }

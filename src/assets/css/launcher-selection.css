@@ -1,0 +1,301 @@
+/* Launcher Selection Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Custom Title Bar */
+.title-bar {
+    height: 32px;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1000;
+}
+
+.title-bar-dragarea {
+    height: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    -webkit-app-region: drag;
+    padding-left: 12px;
+}
+
+.title-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.title-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+}
+
+.title-text {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.title-controls {
+    display: flex;
+    height: 100%;
+    -webkit-app-region: no-drag;
+}
+
+.title-button {
+    width: 46px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.title-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.title-button.close-button:hover {
+    background: #e81123;
+    color: white;
+}
+
+.launcher-selection-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 32px);
+    position: relative;
+}
+
+.header {
+    text-align: center;
+    padding: 40px 20px 30px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2.2em;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #ffffff, #e3f2fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header p {
+    margin: 12px 0 0 0;
+    font-size: 1.1em;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 20px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 20px;
+}
+
+.error-icon {
+    font-size: 3em;
+}
+
+.retry-button {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.retry-button:hover {
+    background: linear-gradient(45deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.launchers-grid {
+    flex: 1;
+    padding: 20px 40px 40px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.launcher-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.launcher-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.launcher-card:hover::before {
+    opacity: 1;
+}
+
+.launcher-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.launcher-card.selected {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(76, 175, 80, 0.3);
+    animation: pulse 1s ease-in-out;
+}
+
+.launcher-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.launcher-card:hover .launcher-icon {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.launcher-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin: 0;
+    word-break: break-word;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Eliminar el footer ya que no lo necesitamos */
+.footer {
+    display: none;
+}
+
+.close-button {
+    display: none;
+}
+
+/* Scrollbar personalizado */
+.launchers-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.launchers-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.launchers-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.launchers-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Animaciones de entrada */
+.launcher-card.animate-in {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.launcher-card.animate-in:nth-child(1) { animation-delay: 0.1s; }
+.launcher-card.animate-in:nth-child(2) { animation-delay: 0.2s; }
+.launcher-card.animate-in:nth-child(3) { animation-delay: 0.3s; }
+.launcher-card.animate-in:nth-child(4) { animation-delay: 0.4s; }
+.launcher-card.animate-in:nth-child(5) { animation-delay: 0.5s; }
+.launcher-card.animate-in:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}

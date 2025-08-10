@@ -1775,6 +1775,56 @@ export {
     fileExists as fileExists,
     isImageUrl as isImageUrl,
     getExecutionKey as getExecutionKey,
-    localization as localization
+    localization as localization,
+    buildApiUrl as buildApiUrl,
+    getSelectedLauncherInfo as getSelectedLauncherInfo,
+    hasSelectedLauncher as hasSelectedLauncher
+}
+
+/**
+ * Construye URLs dinámicamente basado en el launcher seleccionado
+ * @param {string} endpoint - Endpoint de la API
+ * @param {boolean} forceDefault - Si es true, usa la URL por defecto (para actualizaciones)
+ * @returns {Promise<string>} URL completa
+ */
+async function buildApiUrl(endpoint, forceDefault = false) {
+    try {
+        const currentUrl = await ipcRenderer.invoke('get-launcher-url', { forceDefault });
+        
+        // Limpiar endpoint (remover / inicial si existe)
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        
+        return `${currentUrl}${cleanEndpoint}`;
+    } catch (error) {
+        console.error('Error building API URL:', error);
+        // Fallback a pkg.url si hay error
+        return `${pkg.url}${endpoint}`;
+    }
+}
+
+/**
+ * Obtiene información del launcher seleccionado
+ * @returns {Promise<Object|null>} Información del launcher
+ */
+async function getSelectedLauncherInfo() {
+    try {
+        return await ipcRenderer.invoke('get-selected-launcher-info');
+    } catch (error) {
+        console.error('Error getting selected launcher info:', error);
+        return null;
+    }
+}
+
+/**
+ * Verifica si hay un launcher seleccionado
+ * @returns {Promise<boolean>} True si hay un launcher seleccionado
+ */
+async function hasSelectedLauncher() {
+    try {
+        return await ipcRenderer.invoke('has-selected-launcher');
+    } catch (error) {
+        console.error('Error checking selected launcher:', error);
+        return false;
+    }
 }
 window.setVideoSource = setVideoSource;

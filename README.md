@@ -1,11 +1,11 @@
-# 🚀 Miguelki Network MC Launcher
+# 🚀 Miguelki Network MULTI MC Launcher
 
 <p align="center">
   <img src="src/assets/images/icon.png" alt="Miguelki Network MC Launcher" width="128" height="128">
 </p>
 
 <p align="center">
-  <strong>Launcher de Minecraft moderno y potente para los servidores de Miguelki Network</strong>
+  <strong>Launcher de Minecraft moderno y potente para los servidores de Miguelki Network. Ahora con soporte para todos los launchers de Miguelki Network Web Sevices.</strong>
 </p>
 
 <p align="center">

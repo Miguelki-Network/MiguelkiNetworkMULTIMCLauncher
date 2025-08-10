@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Launcher</title>
+    <link rel="stylesheet" href="./assets/css/launcher-selection.css">
+</head>
+<body class="dark global">
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-dragarea">
+            <div class="title-info">
+                <img src="./assets/images/icon.png" alt="Icon" class="title-icon">
+                <span class="title-text">Seleccionar Launcher - Miguelki Network</span>
+            </div>
+        </div>
+        <div class="title-controls">
+            <button class="title-button close-button" id="title-close">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 9.414l3.293 3.293a1 1 0 101.414-1.414L9.414 8l3.293-3.293a1 1 0 10-1.414-1.414L8 6.586 4.707 3.293a1 1 0 10-1.414 1.414L6.586 8l-3.293 3.293a1 1 0 101.414 1.414L8 9.414z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="launcher-selection-container">
+        <div class="header">
+            <h1>Selecciona tu Launcher</h1>
+            <p>Elige el launcher que deseas utilizar</p>
+        </div>
+        
+        <div class="loading-container" id="loading">
+            <div class="spinner"></div>
+            <p>Cargando launchers disponibles...</p>
+        </div>
+        
+        <div class="error-container" id="error" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <p id="error-message">Error al cargar los launchers</p>
+            <button id="retry-btn" class="retry-button">Reintentar</button>
+        </div>
+        
+        <div class="launchers-grid" id="launchers-grid" style="display: none;">
+            <!-- Los launchers se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+    
+    <script src="./assets/js/launcher-selection.js"></script>
+</body>
+</html>

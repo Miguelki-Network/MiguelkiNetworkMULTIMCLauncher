@@ -11,7 +11,9 @@ const { vanilla, fabric, forge, quilt } = require('tomate-loaders');
 const UpdateWindow = require("./assets/js/windows/updateWindow.js");
 const MainWindow = require("./assets/js/windows/mainWindow.js");
 const ConsoleWindow = require("./assets/js/windows/consoleWindow.js");
+const LauncherSelectionWindow = require("./assets/js/windows/launcherSelectionWindow.js");
 const FileLogger = require("./assets/js/utils/file-logger.js");
+const { launcherUrlManager } = require("./assets/js/utils/launcher-url-manager.js");
 
 let dev = process.env.NODE_ENV === 'dev';
 let server;
@@ -171,14 +173,8 @@ if (dev) {
 if (!app.requestSingleInstanceLock()) app.quit();
 else app.whenReady().then(async () => {
     if (dev) {
-        MainWindow.createWindow();
-        // Inicializar la consola automáticamente al crear la ventana principal
-        setTimeout(() => {
-            if (!consoleWindow) {
-                consoleWindow = new ConsoleWindow();
-                consoleWindow.init();
-            }
-        }, 1000); // Pequeño delay para asegurar que la ventana principal esté lista
+        // En desarrollo, también usar el selector de launcher
+        LauncherSelectionWindow.createWindow();
     } else {
         UpdateWindow.createWindow();
     }
@@ -195,6 +191,45 @@ ipcMain.on('main-window-open', async () => {
             consoleWindow.init();
         }
     }, 1000); // Pequeño delay para asegurar que la ventana principal esté lista
+});
+
+// Launcher Selection Window IPC handlers
+ipcMain.on('launcher-selection-open', () => {
+    LauncherSelectionWindow.createWindow();
+});
+
+ipcMain.on('launcher-selection-close', () => {
+    LauncherSelectionWindow.destroyWindow();
+    // Si se cierra sin seleccionar, cerrar completamente el launcher
+    console.log('Selector de launcher cerrado sin selección - cerrando aplicación');
+    app.quit();
+});
+
+ipcMain.on('launcher-selected', (event, launcherData) => {
+    console.log('Launcher seleccionado desde renderer:', launcherData);
+    
+    // Establecer la URL del launcher seleccionado
+    launcherUrlManager.setSelectedUrl(launcherData.url, {
+        name: launcherData.name,
+        icon: launcherData.icon,
+        url: launcherData.url
+    });
+    
+    // Cerrar ventana de selección
+    LauncherSelectionWindow.destroyWindow();
+    
+    // Abrir ventana principal
+    MainWindow.createWindow();
+    
+    // Si estamos en modo dev, inicializar la consola automáticamente
+    if (dev) {
+        setTimeout(() => {
+            if (!consoleWindow) {
+                consoleWindow = new ConsoleWindow();
+                consoleWindow.init();
+            }
+        }, 1000); // Pequeño delay para asegurar que la ventana principal esté lista
+    }
 });
 ipcMain.on('main-window-dev-tools', () => MainWindow.getWindow().webContents.openDevTools({ mode: 'detach' }));
 ipcMain.on('main-window-dev-tools-close', () => MainWindow.getWindow().webContents.closeDevTools());
@@ -479,6 +514,22 @@ ipcMain.on('update-base-version-info', (event, baseVersionInfo) => {
     } catch (error) {
         console.error('Error actualizando información de versión base:', error);
     }
+});
+
+// Handler para obtener la URL actual del launcher
+ipcMain.handle('get-launcher-url', async (event, options = {}) => {
+    const forceDefault = options.forceDefault || false;
+    return launcherUrlManager.getCurrentUrl(forceDefault);
+});
+
+// Handler para obtener información del launcher seleccionado
+ipcMain.handle('get-selected-launcher-info', async () => {
+    return launcherUrlManager.getSelectedLauncher();
+});
+
+// Handler para verificar si hay un launcher seleccionado
+ipcMain.handle('has-selected-launcher', async () => {
+    return launcherUrlManager.hasSelectedLauncher();
 });
 
 ipcMain.handle('path-user-data', () => app.getPath('userData'));

@@ -10,13 +10,29 @@ const convert = require('xml-js');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { ipcRenderer } = require('electron');
 const hwid = machineIdSync();
 
-let url = pkg.user ? `${pkg.url}/${pkg.user}` : pkg.url
 let key;
 
-let config = `${url}/launcher/config-launcher/config.php`;
-let news = `${url}/launcher/news-launcher/news.json`;
+/**
+ * Construye una URL basada en el launcher seleccionado
+ * @param {string} endpoint - Endpoint de la API
+ * @param {boolean} forceDefault - Si es true, usa la URL por defecto
+ * @returns {Promise<string>} URL completa
+ */
+async function buildUrl(endpoint, forceDefault = false) {
+    try {
+        const currentUrl = await ipcRenderer.invoke('get-launcher-url', { forceDefault });
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        return `${currentUrl}${cleanEndpoint}`;
+    } catch (error) {
+        console.error('Error building URL:', error);
+        // Fallback a pkg.url si hay error
+        const url = pkg.user ? `${pkg.url}/${pkg.user}` : pkg.url;
+        return `${url}/${endpoint}`;
+    }
+}
 
 async function getLauncherKey() {
     if (!key) {
@@ -38,31 +54,37 @@ async function getLauncherKey() {
 let Launcherkey = await getLauncherKey();
 
 class Config {
-    GetConfig() {
-        return new Promise((resolve, reject) => {
-            let configUrl = `${config}?checksum=${Launcherkey}`;
-            nodeFetch(configUrl, {
-                headers: {
-                    'User-Agent': 'MiguelkiNetworkMCLauncher'
-                }
-            }).then(async config => {
-                if (config.status === 200) return resolve(config.json());
-                else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
-            }).catch(error => {
+    async GetConfig() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const configUrl = await buildUrl('launcher/config-launcher/config.php');
+                const fullConfigUrl = `${configUrl}?checksum=${Launcherkey}`;
+                
+                nodeFetch(fullConfigUrl, {
+                    headers: {
+                        'User-Agent': 'MiguelkiNetworkMCLauncher'
+                    }
+                }).then(async config => {
+                    if (config.status === 200) return resolve(config.json());
+                    else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
+                }).catch(error => {
+                    return reject({ error });
+                });
+            } catch (error) {
                 return reject({ error });
-            });
+            }
         });
     }
 
     async getInstanceList() {
         try {
-            let urlInstance = `${url}/files?checksum=${Launcherkey}&id=${hwid}`;
+            const baseUrl = await buildUrl('files');
+            let urlInstance = `${baseUrl}?checksum=${Launcherkey}&id=${hwid}`;
             let response = await nodeFetch(urlInstance, {
                 headers: {
                     'User-Agent': 'MiguelkiNetworkMCLauncher'
                 }
-            }
-            );
+            });
             
             // Check if the response is OK
             if (!response.ok) {
@@ -120,14 +142,19 @@ class Config {
                 }).catch(error => reject({ error }))
             })
         } else {
-            return new Promise((resolve, reject) => {
-                nodeFetch(news).then(async config => {
-                    if (config.status === 200) return resolve(config.json());
-                    else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
-                }).catch(error => {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const newsUrl = await buildUrl('launcher/news-launcher/news.json');
+                    nodeFetch(newsUrl).then(async config => {
+                        if (config.status === 200) return resolve(config.json());
+                        else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
+                    }).catch(error => {
+                        return reject({ error });
+                    });
+                } catch (error) {
                     return reject({ error });
-                })
-            })
+                }
+            });
         }
     }
 }

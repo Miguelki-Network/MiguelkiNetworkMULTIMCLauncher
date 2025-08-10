@@ -129,11 +129,17 @@ class Splash {
     async maintenanceCheck() {
         config.GetConfig().then(res => {
             if (res.maintenance) return this.shutdown(res.maintenance_message);
-            this.startLauncher();
+            this.showLauncherSelection();
         }).catch(e => {
             console.error(e);
             return this.shutdown("No se ha podido conectar al servidor.<br>Por favor, inténtalo más tarde.");
         });
+    }
+
+    showLauncherSelection() {
+        this.setStatus(`Seleccionando launcher...`);
+        ipcRenderer.send('launcher-selection-open');
+        ipcRenderer.send('update-window-close');
     }
 
     startLauncher() {

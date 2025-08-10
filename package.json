@@ -1,9 +1,9 @@
 {
-    "name": "MiguelkiNetwork-MCLauncher",
-    "productname": "Miguelki Network MC Launcher",
+    "name": "MiguelkiNetwork-MULTIMCLauncher",
+    "productname": "Miguelki Network Multi MC Launcher",
     "version": "3.4.3",
-    "sub_version": "EXP1",
-    "changelog": "Cambios en la librería de ejecución",
+    "sub_version": "",
+    "changelog": "",
     "description": "Launcher de minecraft para los servidores de Miguelki Network",
     "main": "src/app.js",
     "author": {
@@ -19,7 +19,7 @@
         "start": "cross-env-shell NODE_ENV=dev electron .",
         "dev": "cross-env-shell DEV_TOOL=open nodemon --exec npm start",
         "build": "node build.js --obf=true --build=platform",
-        "icon": "node build.js --icon=https://github.com/miguelkix30/MiguelkiNetworkMCLauncher/master/src/assets/images/icon.png"
+        "icon": "node build.js --icon=https://github.com/Miguelki-Network/MiguelkiNetworkMULTIMCLauncher/master/src/assets/images/icon.png"
     },
     "license": "CCANC",
     "nodemonConfig": {
@@ -56,6 +56,6 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/miguelkix30/MiguelkiNetworkMCLauncher.git"
+        "url": "git+https://github.com/Miguelki-Network/MiguelkiNetworkMULTIMCLauncher.git"
     }
 }

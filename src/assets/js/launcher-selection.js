@@ -65,13 +65,70 @@ class LauncherSelection {
                 throw new Error('No se encontraron launchers disponibles');
             }
             
-            this.launchers = launchers;
+            // Verificar estado de mantenimiento de cada launcher
+            this.launchers = await this.checkMaintenanceStatus(launchers);
             this.displayLaunchers();
             
         } catch (error) {
             console.error('Error cargando launchers:', error);
             this.showError(error.message);
         }
+    }
+
+    async checkMaintenanceStatus(launchers) {
+        // Actualizar mensaje de carga
+        const loadingText = this.loadingContainer.querySelector('p');
+        if (loadingText) {
+            loadingText.textContent = 'Verificando estado de mantenimiento...';
+        }
+        
+        console.log(`Iniciando verificación de mantenimiento para ${launchers.length} launchers`);
+        
+        // Crear promesas para verificar cada launcher en paralelo
+        const maintenancePromises = launchers.map(async (launcher, index) => {
+            try {
+                console.log(`[${index + 1}/${launchers.length}] Verificando mantenimiento para ${launcher.name}...`);
+                
+                // Construir URL de configuración para este launcher específico
+                const configUrl = `${launcher.url}launcher/config-launcher/config.php`;
+                console.log(`URL de configuración: ${configUrl}`);
+                
+                const response = await nodeFetch(configUrl, {
+                    method: 'GET',
+                    timeout: 8000, // Aumentar timeout
+                    headers: {
+                        'User-Agent': 'MiguelkiNetworkMCLauncher',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const config = await response.json();
+                    launcher.maintenance = Boolean(config.maintenance);
+                    launcher.maintenance_message = config.maintenance_message || 'Servidor en mantenimiento';
+                    
+                    console.log(`✓ ${launcher.name} - Mantenimiento: ${launcher.maintenance}`, config.maintenance ? `(${launcher.maintenance_message})` : '');
+                } else {
+                    launcher.maintenance = false;
+                    console.warn(`⚠ No se pudo obtener configuración de ${launcher.name} (${response.status}), asumiendo disponible`);
+                }
+            } catch (error) {
+                launcher.maintenance = false;
+                console.error(`✗ Error verificando ${launcher.name}:`, error.message);
+            }
+            
+            return launcher;
+        });
+        
+        // Esperar a que todas las verificaciones terminen
+        const launchersWithStatus = await Promise.all(maintenancePromises);
+        
+        // Log final del estado
+        const maintenanceCount = launchersWithStatus.filter(l => l.maintenance).length;
+        const availableCount = launchersWithStatus.length - maintenanceCount;
+        console.log(`Verificación completada: ${availableCount} disponibles, ${maintenanceCount} en mantenimiento`);
+        
+        return launchersWithStatus;
     }
     
     showLoading() {
@@ -95,16 +152,88 @@ class LauncherSelection {
         // Limpiar grid anterior
         this.launchersGrid.innerHTML = '';
         
+        // Debug: Log del estado de todos los launchers
+        console.log('=== ESTADO DE LAUNCHERS ===');
+        this.launchers.forEach((launcher, index) => {
+            console.log(`${index + 1}. ${launcher.name}: ${launcher.maintenance ? 'EN MANTENIMIENTO' : 'DISPONIBLE'}`, launcher.maintenance ? `(${launcher.maintenance_message})` : '');
+        });
+        console.log('============================');
+        
         this.launchers.forEach((launcher, index) => {
             const launcherCard = this.createLauncherCard(launcher, index);
             this.launchersGrid.appendChild(launcherCard);
         });
+        
+        // Mostrar resumen de estado
+        this.showStatusSummary();
+    }
+
+    showStatusSummary() {
+        const totalLaunchers = this.launchers.length;
+        const maintenanceLaunchers = this.launchers.filter(l => l.maintenance).length;
+        const availableLaunchers = totalLaunchers - maintenanceLaunchers;
+        
+        console.log(`Estado de launchers - Total: ${totalLaunchers}, Disponibles: ${availableLaunchers}, En mantenimiento: ${maintenanceLaunchers}`);
+        
+        if (maintenanceLaunchers > 0) {
+            const maintenanceNames = this.launchers
+                .filter(l => l.maintenance)
+                .map(l => l.name)
+                .join(', ');
+            
+            console.log(`Launchers en mantenimiento: ${maintenanceNames}`);
+            
+            // Mostrar notificación temporal si hay launchers en mantenimiento
+            if (maintenanceLaunchers === totalLaunchers) {
+                // Todos los launchers están en mantenimiento
+                this.showTemporaryNotification(
+                    '⚠️ Todos los launchers están en mantenimiento',
+                    'Todos los servidores están temporalmente fuera de servicio. Por favor, inténtalo más tarde.',
+                    'warning'
+                );
+            } else {
+                // Algunos launchers están en mantenimiento
+                this.showTemporaryNotification(
+                    `🔧 ${maintenanceLaunchers} launcher(s) en mantenimiento`,
+                    `Los siguientes launchers no están disponibles: ${maintenanceNames}`,
+                    'info'
+                );
+            }
+        }
+    }
+
+    showTemporaryNotification(title, message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `status-notification ${type}`;
+        notification.innerHTML = `
+            <div class="status-content">
+                <h4>${title}</h4>
+                <p>${message}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-cerrar después de 4 segundos
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 4000);
     }
     
     createLauncherCard(launcher, index) {
         const card = document.createElement('div');
         card.className = 'launcher-card animate-in';
         card.dataset.launcherIndex = index;
+        
+        // Añadir clase de mantenimiento si está en mantenimiento
+        if (launcher.maintenance) {
+            card.classList.add('maintenance');
+        }
         
         // Crear icono
         const icon = document.createElement('img');
@@ -122,12 +251,30 @@ class LauncherSelection {
         name.className = 'launcher-name';
         name.textContent = launcher.name;
         
+        // Crear indicador de mantenimiento si es necesario
+        if (launcher.maintenance) {
+            const maintenanceIndicator = document.createElement('div');
+            maintenanceIndicator.className = 'maintenance-indicator';
+            maintenanceIndicator.innerHTML = '⚠️ MANTENIMIENTO';
+            card.appendChild(maintenanceIndicator);
+            
+            // Aplicar overlay de mantenimiento
+            const overlay = document.createElement('div');
+            overlay.className = 'maintenance-overlay';
+            card.appendChild(overlay);
+        }
+        
         card.appendChild(icon);
         card.appendChild(name);
         
         // Event listener para selección
         card.addEventListener('click', () => {
-            this.selectLauncher(launcher, card);
+            if (launcher.maintenance) {
+                // Mostrar mensaje de mantenimiento en lugar de permitir selección
+                this.showMaintenanceMessage(launcher);
+            } else {
+                this.selectLauncher(launcher, card);
+            }
         });
         
         // Aplicar animación con delay
@@ -136,6 +283,37 @@ class LauncherSelection {
         }, index * 100);
         
         return card;
+    }
+
+    showMaintenanceMessage(launcher) {
+        // Crear modal o mensaje temporal
+        const message = launcher.maintenance_message || 'Este launcher está actualmente en mantenimiento. Por favor, inténtalo más tarde.';
+        
+        // Crear elemento de notificación temporal
+        const notification = document.createElement('div');
+        notification.className = 'maintenance-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <h3>🔧 ${launcher.name} en Mantenimiento</h3>
+                <p>${message}</p>
+                <button class="notification-close">Entendido</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Cerrar notificación
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            notification.remove();
+        });
+        
+        // Auto-cerrar después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
     }
     
     selectLauncher(launcher, cardElement) {

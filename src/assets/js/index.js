@@ -21,32 +21,10 @@ class Splash {
         });
     }
 
-    async fetchSplashes() {
-        try {
-            const url = `${pkg.url}launcher/config-launcher/splashes.json`;
-            const response = await nodeFetch(url, { timeout: 5000 });
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error al cagar los splashes, usando los default:', error);
-            return null;
-        }
-    }
-
     async startAnimation() {
-        let defaultSplashes = [
-            { "message": "Miguelki Network", "author": "Miguelki" }
+        let splashes = [
+            { "message": "Miguelki Network MULTI MC Launcher", "author": "" }
         ];
-
-        let splashes = await this.fetchSplashes();
-
-        if (splashes && Array.isArray(splashes) && splashes.length > 0) {
-            console.log("Using fetched splashes");
-        } else {
-            console.log("Using default splashes");
-            splashes = defaultSplashes;
-        }
 
         let splash = splashes[Math.floor(Math.random() * splashes.length)];
         this.splashMessage.textContent = splash.message;

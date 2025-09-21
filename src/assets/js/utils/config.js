@@ -12,74 +12,67 @@ const fs = require('fs');
 const path = require('path');
 const { ipcRenderer } = require('electron');
 const hwid = machineIdSync();
+import { getConfig, getLauncherKey, getCurrentLauncherUrl } from '../MKLib.js';
 
 let key;
 
 /**
- * Construye una URL basada en el launcher seleccionado
+ * Construye una URL basada en el launcher seleccionado usando MKLib
  * @param {string} endpoint - Endpoint de la API
- * @param {boolean} forceDefault - Si es true, usa la URL por defecto
  * @returns {Promise<string>} URL completa
  */
-async function buildUrl(endpoint, forceDefault = false) {
+async function buildUrl(endpoint) {
     try {
-        const currentUrl = await ipcRenderer.invoke('get-launcher-url', { forceDefault });
+        const currentUrl = await getCurrentLauncherUrl();
         const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-        return `${currentUrl}${cleanEndpoint}`;
+        return `${currentUrl}/${cleanEndpoint}`;
     } catch (error) {
         console.error('Error building URL:', error);
         // Fallback a pkg.url si hay error
         const url = pkg.user ? `${pkg.url}/${pkg.user}` : pkg.url;
-        return `${url}/${endpoint}`;
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        return `${url}/${cleanEndpoint}`;
     }
 }
 
-async function getLauncherKey() {
-    if (!key) {
-      const files = [
-        path.join(__dirname, '../package.json'),
-        ...fs.readdirSync(__dirname).filter(file => file.endsWith('.js')).map(file => path.join(__dirname, file))
-      ];
-  
-      const hash = crypto.createHash('sha256');
-      for (const file of files) {
-        const data = fs.readFileSync(file);
-        hash.update(data);
-      }
-      key = hash.digest('hex');
-    }
-    return key;
-  };
+// Función local getLauncherKey para compatibilidad hacia atrás con getInstanceList
+async function getLocalLauncherKey() {
+    try {
+        // Usar la función protegida de MKLib en lugar de implementación local
+        return await getLauncherKey();
+    } catch (error) {
+        console.warn('Error getting launcher key from MKLib, using fallback:', error);
+        // Fallback a la implementación local si falla MKLib
+        if (!key) {
+            const files = [
+                path.join(__dirname, '../package.json'),
+                ...fs.readdirSync(__dirname).filter(file => file.endsWith('.js')).map(file => path.join(__dirname, file))
+            ];
 
-let Launcherkey = await getLauncherKey();
+            const hash = crypto.createHash('sha256');
+            for (const file of files) {
+                const data = fs.readFileSync(file);
+                hash.update(data);
+            }
+            key = hash.digest('hex');
+        }
+        return key;
+    }
+}
 
 class Config {
     async GetConfig() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const configUrl = await buildUrl('launcher/config-launcher/config.php');
-                const fullConfigUrl = `${configUrl}?checksum=${Launcherkey}`;
-                
-                nodeFetch(fullConfigUrl, {
-                    headers: {
-                        'User-Agent': 'MiguelkiNetworkMCLauncher'
-                    }
-                }).then(async config => {
-                    if (config.status === 200) return resolve(config.json());
-                    else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
-                }).catch(error => {
-                    return reject({ error });
-                });
-            } catch (error) {
-                return reject({ error });
-            }
-        });
+        // Use the new protected function from MKLib.js
+        return getConfig();
     }
 
     async getInstanceList() {
         try {
+            // Usar la función actualizada para obtener la clave del launcher
+            const launcherKey = await getLocalLauncherKey();
             const baseUrl = await buildUrl('files');
-            let urlInstance = `${baseUrl}?checksum=${Launcherkey}&id=${hwid}`;
+            let urlInstance = `${baseUrl}?checksum=${launcherKey}&id=${hwid}`;
+            
             let response = await nodeFetch(urlInstance, {
                 headers: {
                     'User-Agent': 'MiguelkiNetworkMCLauncher'
@@ -145,7 +138,11 @@ class Config {
             return new Promise(async (resolve, reject) => {
                 try {
                     const newsUrl = await buildUrl('launcher/news-launcher/news.json');
-                    nodeFetch(newsUrl).then(async config => {
+                    nodeFetch(newsUrl, {
+                        headers: {
+                            'User-Agent': 'MiguelkiNetworkMCLauncher'
+                        }
+                    }).then(async config => {
                         if (config.status === 200) return resolve(config.json());
                         else return reject({ error: { code: config.statusText, message: 'server not accessible' } });
                     }).catch(error => {

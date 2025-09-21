@@ -87,11 +87,9 @@ class LauncherSelection {
         // Crear promesas para verificar cada launcher en paralelo
         const maintenancePromises = launchers.map(async (launcher, index) => {
             try {
-                console.log(`[${index + 1}/${launchers.length}] Verificando mantenimiento para ${launcher.name}...`);
                 
                 // Construir URL de configuración para este launcher específico
                 const configUrl = `${launcher.url}launcher/config-launcher/config.php`;
-                console.log(`URL de configuración: ${configUrl}`);
                 
                 const response = await nodeFetch(configUrl, {
                     method: 'GET',
